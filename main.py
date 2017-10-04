@@ -38,13 +38,13 @@ def load_vgg(sess, vgg_path):
     #load the graph
     graph = tf.get_default_graph()
     # grabbing each layer by its name
-    w1 = graph.get_tensor_by_name(vgg_input_tensor_name)
+    image_input = graph.get_tensor_by_name(vgg_input_tensor_name)
     keep = graph.get_tensor_by_name(vgg_keep_prob_tensor_name)
-    w3 = graph.get_tensor_by_name(vgg_layer3_out_tensor_name)
-    w4 = graph.get_tensor_by_name(vgg_layer4_out_tensor_name)
-    w7 = graph.get_tensor_by_name(vgg_layer7_out_tensor_name)
+    layer_3_out = graph.get_tensor_by_name(vgg_layer3_out_tensor_name)
+    layer_4_out = graph.get_tensor_by_name(vgg_layer4_out_tensor_name)
+    layer_7_out = graph.get_tensor_by_name(vgg_layer7_out_tensor_name)
     
-    return w1, keep, w3, w4, w7
+    return image_input, keep, layer_3_out, layer_4_out, layer_7_out
 tests.test_load_vgg(load_vgg, tf)
 
 
@@ -57,7 +57,46 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
     :param num_classes: Number of classes to classify
     :return: The Tensor for the last layer of output
     """
-    # TODO: Implement function
+    # appyl 1x1 conv to encoder layers
+    layer3 = tf.layers.conv2d(vgg_layer3_out, num_classes, kernel_size=(1,1), strides=(1,1), padding='same',
+                                kernel_initializer=tf.random_normal_initializer(stddev=0.01), 
+                                kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
+    
+    layer4 = tf.layers.conv2d(vgg_layer4_out, num_classes, kernel_size=(1,1), strides=(1,1), padding='same',
+                                kernel_initializer=tf.random_normal_initializer(stddev=0.01),
+                                kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
+    
+    layer7 = tf.layers.conv2d(vgg_layer7_out, num_classes, kernel_size=(1,1), strides=(1,1), padding='same', 
+                                kernel_initializer=tf.random_normal_initializer(stddev=0.01),
+                                kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
+
+    # add decoder layers with skip connections and upsampling.
+    dec_layer1 = tf.layers.conv2d_transpose(layer7, num_classes, 4, 2, padding='same', 
+                                        kernel_initializer=tf.random_normal_initializer(stddev=0.01),
+                                        kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3)))
+    dec_layer2 = tf.add(dec_layer1, layer4)
+    dec_layer3 = tf.layers.conv2d_transpose(dec_layer2, num_classes, 4, 2, padding='same', 
+                                        kernel_initializer=tf.random_normal_initializer(stddev=0.01),
+                                        kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3)))
+    dec_layer4 = tf.add(dec_layer3, layer3)
+    dec_layer_out = tf.layers.conv2d_transpose(dec_layer4, num_classes, 16, 8, padding='same', 
+                                        kernel_initializer=tf.random_normal_initializer(stddev=0.01),
+                                        kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3)))
+
+    return dec_layer_out
+
+
+
+
+
+
+    # 1x1 convolutional layer
+    conv_1x1 = tf.layers.conv2d(vgg_layer7_out, num_classes, 1, padding='same', 
+                                kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
+    # deconvolution
+    output = tf.layers.conv2d_transpose(conv_1x1, num_classes, 4, 2, padding='same', 
+                                        kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3)))
+    
     return None
 tests.test_layers(layers)
 
