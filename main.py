@@ -85,19 +85,6 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
 
     return dec_layer_out
 
-
-
-
-
-
-    # 1x1 convolutional layer
-    conv_1x1 = tf.layers.conv2d(vgg_layer7_out, num_classes, 1, padding='same', 
-                                kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
-    # deconvolution
-    output = tf.layers.conv2d_transpose(conv_1x1, num_classes, 4, 2, padding='same', 
-                                        kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3)))
-    
-    return None
 tests.test_layers(layers)
 
 
