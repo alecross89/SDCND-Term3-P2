@@ -137,17 +137,16 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
     :param keep_prob: TF Placeholder for dropout keep probability
     :param learning_rate: TF Placeholder for learning rate
     """
-    # TODO: Implement function
     sess.run(tf.global_variables_initializer())
     
     print("Training...")
     print()
     for i in range(epochs):
-        print("EPOCH {} ...".format(i+1))
+        print("Epoch #: {}".format(i+1))
         for image, label in get_batches_fn(batch_size):
             _, loss = sess.run([train_op, cross_entropy_loss], 
-                               feed_dict={input_image: image, correct_label: label, keep_prob: 0.5, learning_rate: 0.0009})
-            print("Loss: = {:.3f}".format(loss))
+                               feed_dict={input_image: image, correct_label: label, keep_prob: 0.5, learning_rate: 0.0001})
+            print("Loss: = {:.4f}".format(loss))
         print()
 tests.test_train_nn(train_nn)
 
@@ -156,11 +155,11 @@ def run():
     num_classes = 2
     image_shape = (160, 576)
     
-    #use below data_dir for floydhub
+    #use other data_dir for floydhub
     # data_dir = '/data/data'
     data_dir = './data'
 
-    #use below runs_dir for floydhub
+    #use other runs_dir for floydhub
     # runs_dir = '/output/runs'
     runs_dir = '/runs'
     print(os.path.join(data_dir, 'data_road/training'))
